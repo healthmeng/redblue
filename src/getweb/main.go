@@ -58,7 +58,11 @@ func main(){
 		for q:=1;q<160;q++{
 			str:=fmt.Sprintf("https://kjh.55128.cn/ssq-kjjg-%d%03d.htm",y,q)
 			if info:=CheckoutUrl(str);info!=nil{
-					fmt.Println(y,q,":",info.RedBalls,"--",info.BlueBall)
+//					fmt.Println(y,q,":",info.RedBalls,"--",info.BlueBall)
+				for i:=0;i<6;i++{
+					fmt.Print(info.RedBalls[i],"  ")
+				}
+				fmt.Println(info.BlueBall)
 		}
 	}
 	}

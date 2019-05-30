@@ -54,7 +54,7 @@ func CheckoutUrl(url string) *Info{
 }
 
 func main(){
-	for y:=2003;y<=2019;y++{
+	for y:=2010;y<=2019;y++{
 		for q:=1;q<160;q++{
 			str:=fmt.Sprintf("https://kjh.55128.cn/ssq-kjjg-%d%03d.htm",y,q)
 			if info:=CheckoutUrl(str);info!=nil{

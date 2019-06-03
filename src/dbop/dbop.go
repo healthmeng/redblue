@@ -4,7 +4,7 @@ import (
 "database/sql"
 "os"
 "fmt"
-_"github.com/Go-SQL-Driver/MySQL"
+_"MySQL"
 "time"
 )
 

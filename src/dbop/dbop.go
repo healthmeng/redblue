@@ -2,11 +2,7 @@ package dbop
 
 import (
 "database/sql"
-_"strings"
-"log"
-"math"
 "os"
-"errors"
 "fmt"
 _"github.com/Go-SQL-Driver/MySQL"
 "time"
@@ -14,12 +10,12 @@ _"github.com/Go-SQL-Driver/MySQL"
 
 var curdb *sql.DB
 
-type DataInfo struct{
-	Year int64
-	Term int64
-	Rb1, Rb2, Rb3, Rb4, Rb5, Rb6, Bb int64
+type Info struct{
+    RedBalls [6] int
+    BlueBall int
+	Year int
+	Term int
 }
-
 
 func init(){
 	ConnDB()
@@ -29,7 +25,7 @@ func ConnDB(){
 	var err error
 	curdb,err=sql.Open("mysql","work:Work4All;@tcp(123.206.55.31:3306)/rbdata")
 	if err!=nil{
-		log.Println("Open database error:",err)
+		fmt.Println("Open database error:",err)
 		os.Exit(1)
 	}
 	curdb.SetConnMaxLifetime(time.Second*500)
@@ -43,24 +39,53 @@ func GetDB() *sql.DB{
 	return curdb
 }
 
-func FindStoreID(id int64) (* StoreInfo,error){
+func Lookup(year, term int) (*Info,error){
 	db:=GetDB()
-	query:=fmt.Sprintf("select * from stores where id='%d'",id)
+	var id int
+	query:=fmt.Sprintf("select * from records where year='%d' and term='%d'",year, term)
 	res,err:=db.Query(query)
 	if err!=nil{
-		log.Println("find store query error:",err)
+		fmt.Println("Lookup in database error:",err)
 		return nil,err
 	}
 	if res.Next(){
-		info:=new(StoreInfo)
-		if err:=res.Scan(&info.ID,	&info.Name,
-				&info.Level, &info.Descr);err!=nil{
-			log.Println("Query error:",err)
-			return nil,err
+		info:=new(Info)
+		if err:=res.Scan(&info.Year,&info.Term,&info.RedBalls[0],&info.RedBalls[1],&info.RedBalls[2],&info.RedBalls[3],&info.RedBalls[4],&info.RedBalls[5],&info.BlueBall,&id);err==nil{
+			return info,nil
+		}else{
+			fmt.Println("Scan err",err)
 		}
-		return info,nil
 	}
 	return nil,nil
+}
+
+func EnumAll(proc func (info* Info)()){
+	db:=GetDB()
+	if res,err:=db.Query("select * from records");err!=nil{
+		fmt.Println("slect in db error")
+		return
+	}else{
+		info:=new(Info)
+		var id int
+		for res.Next(){
+			if err:=res.Scan(&info.Year,&info.Term,&info.RedBalls[0],&info.RedBalls[1],&info.RedBalls[2],&info.RedBalls[3],&info.RedBalls[4],&info.RedBalls[5],&info.BlueBall,&id);err==nil{
+			proc(info)
+			}else{
+				fmt.Println("Scan query data error",err)
+				break
+			}
+		}
+	}
+}
+
+func (info* Info)AddInfo() error{
+	db:=GetDB()
+	query:=fmt.Sprintf("insert into records (year,term,rb1,rb2,rb3,rb4,rb5,rb6,bb) values ('%d','%d','%d','%d','%d','%d','%d','%d','%d')",info.Year,info.Term,info.RedBalls[0],info.RedBalls[1], info.RedBalls[2], info.RedBalls[3], info.RedBalls[4], info.RedBalls[5], info.BlueBall) 
+	if _,err:=db.Exec(query);err!=nil{
+		fmt.Println("Insert into db error:",err)
+		return err
+	}
+	return nil
 }
 
 func DelApp(id int64) error{
@@ -69,7 +94,7 @@ func DelApp(id int64) error{
 //	return err
 	return nil;
 }
-
+/*
 func FindApp(id int64) (* AppInfo,error){
 	db:=GetDB()
 	query:=fmt.Sprintf("select * from apps where id='%d'",id)
@@ -93,9 +118,6 @@ func FindApp(id int64) (* AppInfo,error){
 
 func (info* TrackInfo)RegisterVisit() error{
 	db:=GetDB()
-/*    tm:=time.Now().Local()
-    info.RegTime=fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d", tm.Year(), tm.Month(), tm.Day(), tm.Hour(), tm.Minute(), tm.Second())*/
-    query:=fmt.Sprintf("insert into tracks (storeid, appid) values (%d,%d)",info.StoreID,info.AppID)
     if _,err:=db.Exec(query);err!=nil{
         log.Println("Insert db error:",err)
         return err
@@ -203,4 +225,4 @@ func GetAllApps(storeid int64)([]*AppInfo,error){
 	}
 	return ret,nil
 }
-
+*/

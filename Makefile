@@ -1,3 +1,3 @@
 export GOPATH=$(PWD)
 all:
-	go build getweb
+	go build -gcflags "-N" rbcalc

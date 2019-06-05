@@ -39,6 +39,28 @@ func GetDB() *sql.DB{
 	return curdb
 }
 
+func GetLastRecord(thisyear int)(int,int,error){
+	db:=GetDB()
+	year:=2003
+	term:=0
+	for y:=thisyear;y>=2003;y--{
+		query:=fmt.Sprintf("select year,term from records where year='%d' order by term desc",y)
+		res,err:=db.Query(query)
+		if err!=nil{
+			return year,term,err
+		}
+		if res.Next(){
+			if err:=res.Scan(&year,&term);err!=nil{
+				fmt.Println("Get last record scan error ", err)
+				return year,term,err
+			}else{
+				break
+			}
+		}
+	}
+	return year,term,nil
+}
+
 func Lookup(year, term int) (*Info,error){
 	db:=GetDB()
 	var id int
@@ -59,9 +81,10 @@ func Lookup(year, term int) (*Info,error){
 	return nil,nil
 }
 
-func EnumAll(proc func (info* Info)()){
+func EnumAll(startyear int, proc func (info* Info)()){
 	db:=GetDB()
-	if res,err:=db.Query("select * from records");err!=nil{
+	query:=fmt.Sprintf("select * from records where year>=%d",startyear)
+	if res,err:=db.Query(query);err!=nil{
 		fmt.Println("slect in db error")
 		return
 	}else{

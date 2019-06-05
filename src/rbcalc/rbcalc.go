@@ -58,6 +58,31 @@ func CheckoutUrl(url string,year, term int) *dbop.Info{
     return &info
 }
 
+func doUpdateOpt(){
+	thisyear:=time.Now().Year()
+	lyear,lterm,err:=dbop.GetLastRecord(thisyear)
+	if err!=nil{
+		fmt.Println("Get last record error",err)
+		return
+	}
+	fmt.Printf("Get last record: %d-%d\n", lyear,lterm)
+	for y:=lyear;y<=thisyear;y++{
+		for t:=lterm+1;t<160;t++{
+			str:=fmt.Sprintf("https://kjh.55128.cn/ssq-kjjg-%d%03d.htm",y,t)
+			info:=CheckoutUrl(str,y,t)
+			if info!=nil{
+				if i,_:=dbop.Lookup(info.Year,info.Term);i==nil{
+					info.AddInfo()
+					fmt.Printf("%d-%d updated\n",y,t)
+				}
+			}else{
+				break
+			}
+		}
+		lterm=0
+	}
+}
+
 func doUpdate(){
 	year:=time.Now().Year()
 StopFind:
@@ -86,7 +111,7 @@ func SimplePrint(info *dbop.Info){
 }
 
 func doShowAll(){
-	dbop.EnumAll(SimplePrint)
+	dbop.EnumAll(2003,SimplePrint)
 }
 
 type backet struct{
@@ -117,9 +142,9 @@ func (s *SortType)Swap(i,j int){
 }
 
 
-func GetLeast(){
+func GetLeast(from int){
 	bks:=backet{[33]int{0},[16]int{0}}
-	dbop.EnumAll(func (info* dbop.Info){
+	dbop.EnumAll(from,func (info* dbop.Info){
 		for i:=0;i<6;i++{
 			bks.redbk[info.RedBalls[i]-1]++
 		}
@@ -151,7 +176,14 @@ func GetLeast(){
 func getSuggest(){
 // switch predictway{
 // case SimpleStatis:
-	GetLeast()
+	year:=2003
+	if len(os.Args)>=3{
+		y,err:=strconv.Atoi(os.Args[2])
+		if err==nil{
+			year=y
+		}
+	}
+	GetLeast(year)
 }
 
 func main(){
@@ -163,7 +195,7 @@ func main(){
 		case "-u":
 			fallthrough
 		case "update":
-			doUpdate()
+			doUpdateOpt()
 		case "-s":
 			fallthrough
 		case "show":

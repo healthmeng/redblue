@@ -55,7 +55,11 @@ func CheckoutUrl(url string,year, term int) *dbop.Info{
             break
         }
     }
-    return &info
+	if index<6{
+		return nil
+	}else{
+		return  &info
+	}
 }
 
 func doUpdateOpt(){

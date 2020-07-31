@@ -24,11 +24,17 @@ type Info struct{
     BlueBall int
 	Year int
 	Term int
+	Date string
 }*/
 
 func ParseLine(buf string,info* dbop.Info,index *int) int{
     patred,_:=regexp.Compile("\\s*<span\\s+class=\\\"ball-list\\s+red\\\">(\\d+)</span>")
     patblue,_:=regexp.Compile("\\s*<span\\s+class=\\\"ball-list\\s+blue\\\">(\\d+)</span>")
+    patdate,_:=regexp.Compile("\\s*开奖时间.+(\\d{4}-\\d+-\\d+)</span>")
+    if date:=patdate.FindStringSubmatch(string(buf));date!=nil{
+	info.Date=date[1]
+	return -1
+	}
     if num:=patred.FindStringSubmatch(string(buf));num!=nil{
         info.RedBalls[*index],_=strconv.Atoi(num[1])
         (*index)++
@@ -47,7 +53,7 @@ func CheckoutUrl(url string,year, term int) *dbop.Info{
     }
     defer res.Body.Close()
     index:=0
-    info:=dbop.Info{[6]int{0},0,year,term}
+    info:=dbop.Info{[6]int{0},0,year,term,"19000101"}
     rb:=bufio.NewReader(res.Body)
     for{
         line,_,err:=rb.ReadLine()
@@ -77,7 +83,8 @@ func doUpdateOpt(){
 			if info!=nil{
 				if i,_:=dbop.Lookup(info.Year,info.Term);i==nil{
 					info.AddInfo()
-					fmt.Printf("%d-%d updated\n",y,t)
+
+					fmt.Printf("%d-%d(%s) updated: Red: %d, %d, %d, %d, %d, %d; Blue :%d\n\n",y,t,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
 				}
 			}else{
 				break
@@ -111,7 +118,7 @@ StopFind:
 }
 
 func SimplePrint(info *dbop.Info){
-	fmt.Printf("%d-%d: Red %d, %d, %d, %d, %d, %d; Blue %d\n",info.Year, info.Term,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
+	fmt.Printf("%d-%d(%s): Red %d, %d, %d, %d, %d, %d; Blue %d\n",info.Year, info.Term,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
 }
 
 func doShowAll(){

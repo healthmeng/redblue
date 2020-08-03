@@ -15,8 +15,9 @@ import (
 
 func printUsage(){
 	fmt.Println("Usage:\n-u/update update latest data into database\n")
-	fmt.Println("-s/show show every ball hit info\n")
+	fmt.Println("-a/all show every ball hit info\n")
 	fmt.Println("-g/get [param] get suggestions by different way\n")
+	fmt.Println("-s/set set current selected balls")
 }
 /*
 type Info struct{
@@ -197,6 +198,69 @@ func getSuggest(){
 	GetLeast(year)
 }
 
+func prtCurSel(){
+	infos:=dbop.GetSelected()
+	for _,i:=range infos{
+		fmt.Println(i.Id,": Red:",i.RedBalls,"Blue:[",i.BlueBall,"]; Selected in:",i.Date)
+	}
+}
+
+func addSel(){
+	info:=new (dbop.MySelInfo)
+	fmt.Println("Six red balls:")
+	for i:=0;i<6;i++{
+		fmt.Scanf("%d",&info.RedBalls[i])
+	}
+	fmt.Println("Blue ball:")
+	fmt.Scanf("%d",&info.BlueBall)
+	curtm:=time.Now()
+	info.Date=fmt.Sprintf("%04d-%02d-%02d",curtm.Year(),curtm.Month(),curtm.Day())
+	dbop.InsertSel(info)
+}
+
+func delSel(){
+	var sel int
+	fmt.Print("Input ID to be deleted:")
+	fmt.Scanf("%d",&sel)
+	if !dbop.DelSel(sel){
+		fmt.Println("Can't find id ",sel)
+	}else{
+		fmt.Println("Delelted ok")
+	}
+}
+
+func editSel(){
+}
+
+func setSelect(){
+oversel:
+	for{
+		prtCurSel()
+		var sel string
+		fmt.Println("(A) Add... (D) Del. (E) Edit... (Q) Quit")
+		fmt.Scanln(&sel)
+		switch sel{
+			case "A":
+				fallthrough
+			case "a":
+				addSel()
+			case "D":
+				fallthrough
+			case "d":
+				delSel()
+			case "E":
+				fallthrough
+			case "e":
+				editSel()
+			case "q":
+				fallthrough
+			case "Q":
+				break oversel
+		}
+		
+	}
+}
+
 func main(){
 	argc:=len(os.Args)
 	if argc <2 {
@@ -207,14 +271,18 @@ func main(){
 			fallthrough
 		case "update":
 			doUpdateOpt()
-		case "-s":
+		case "-a":
 			fallthrough
-		case "show":
+		case "all":
 			doShowAll()
 		case "-g":
 			fallthrough
 		case "get":
-				getSuggest()
+			getSuggest()
+		case "-s":
+			fallthrough
+		case "show":
+			setSelect()
 		}
 	}
 }

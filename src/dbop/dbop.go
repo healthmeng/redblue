@@ -4,6 +4,7 @@ import (
 "database/sql"
 "os"
 "fmt"
+"errors"
 _"MySQL"
 "time"
 )
@@ -16,6 +17,13 @@ type Info struct{
 	Year int
 	Term int
 	Date string
+}
+
+type MySelInfo struct{
+	RedBalls[6] int
+	BlueBall int
+	Date string
+	Id int
 }
 
 func init(){
@@ -80,6 +88,70 @@ func Lookup(year, term int) (*Info,error){
 		}
 	}
 	return nil,nil
+}
+
+func DelSel(id int) bool{
+	db:=GetDB()
+	query:=fmt.Sprintf("delete from mysel where id=%d",id)
+	if res,err:=db.Exec(query);err!=nil{
+		fmt.Println("db exec error:",err.Error())
+	}else{
+		if row,_:=res.RowsAffected();row>0{
+			return true
+		}
+	}
+	return false
+}
+
+func findLeastID() (int,error){
+	db:=GetDB()
+	for i:=1;;i++{
+		query:=fmt.Sprintf("select bb from mysel where id=%d",i)
+		if res,err:=db.Query(query);err!=nil{
+			return 0,err
+		}else{
+			if res.Next(){
+				continue
+			}else{
+				return i,nil
+			}
+		}
+	}
+	return 0,errors.New("Impossible error")
+}
+
+func InsertSel(info* MySelInfo){
+	db:=GetDB()
+	var err error
+	if info.Id,err=findLeastID();err!=nil{
+		fmt.Println("Find id error:",err.Error())
+		return
+	}
+	query:=fmt.Sprintf("insert into mysel(id,rb1,rb2,rb3,rb4,rb5,rb6,bb,date) values ('%d','%d','%d','%d','%d','%d','%d','%d','%s')",info.Id,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall,info.Date)
+	if _,err:=db.Exec(query);err!=nil{
+		fmt.Println("insert failed:",err.Error())
+	}
+}
+
+func GetSelected() []*MySelInfo{
+	db:=GetDB()
+	query:=fmt.Sprintf("Select * from mysel order by id asc")
+	if res,err:=db.Query(query);err!=nil{
+		fmt.Println("select in db error",err.Error())
+		return nil
+	}else{
+	list:=make([]*MySelInfo,0,100) // should <10
+	for res.Next(){
+		info:=new(MySelInfo)
+		if err:=res.Scan(&info.Id,&info.RedBalls[0],&info.RedBalls[1],&info.RedBalls[2],&info.RedBalls[3],&info.RedBalls[4],&info.RedBalls[5],&info.BlueBall,&info.Date);err!=nil{
+			fmt.Println("Scan query error in GetSeled:",err.Error())
+			return nil
+		}else{
+			list=append(list,info)
+		}
+		}	
+		return list
+	}
 }
 
 func EnumAll(startyear int, proc func (info* Info)()){

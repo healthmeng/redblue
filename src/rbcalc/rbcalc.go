@@ -85,7 +85,9 @@ func doUpdateOpt(){
 				if i,_:=dbop.Lookup(info.Year,info.Term);i==nil{
 					info.AddInfo()
 
-					fmt.Printf("%d-%d(%s) updated: Red: %d, %d, %d, %d, %d, %d; Blue :%d\n\n",y,t,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
+					fmt.Printf("%d-%d(%s) updated: Red: %d, %d, %d, %d, %d, %d; Blue :%d\n",y,t,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
+
+				checkMatch(info)
 				}
 			}else{
 				break
@@ -95,6 +97,55 @@ func doUpdateOpt(){
 	}
 }
 
+
+func checkMatch(info *dbop.Info){
+	dst:=make(map[int] int)
+	for _,v:=range info.RedBalls{
+		dst[v]=1
+	}
+	s:=dbop.GetSelected()	
+	for _,mysel:=range s{
+		redhit:=0
+		for _,v:=range mysel.RedBalls{
+			if dst[v]==1{
+				redhit++
+			}
+		}	
+	bluehit:=false
+	money:=0
+	if mysel.BlueBall==info.BlueBall{
+		bluehit=true		
+	}
+	if bluehit{
+		switch redhit{
+		case 0,1,2:
+			money=5
+		case 3:
+			money=10
+		case 4:
+			money=200
+		case 5:
+			money=3000
+		case 6:
+			money=5000000
+		}
+	}else{
+		switch redhit{
+		case 4:
+			money=10
+		case 5:
+			money=200
+		case 6:
+			money=50000
+		}
+	}
+	if money>0{
+		fmt.Println("Hit!!! ", mysel.RedBalls,"[",mysel.BlueBall,"]  Get bonus:￥",money)
+	}
+	}
+}
+
+/* 
 func doUpdate(){
 	year:=time.Now().Year()
 StopFind:
@@ -108,15 +159,16 @@ StopFind:
 			info:=CheckoutUrl(str,y,term)
 			if info!=nil{
 				info.AddInfo()
-				fmt.Printf("Red: %d, %d, %d, %d, %d, %d; Blue :%d\n",info.RedBalls[0],info.RedBalls[1],
+				fmt.Printf("Red: %d, %d, %d, %d, %d, %d; Blue :%d.\n",info.RedBalls[0],info.RedBalls[1],
 				info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
+				checkMatch(info)
 			}else{
 				fmt.Println("no data")
 			}
 		}
 	}
 	fmt.Println("Update finished!")
-}
+}*/
 
 func SimplePrint(info *dbop.Info){
 	fmt.Printf("%d-%d(%s): Red %d, %d, %d, %d, %d, %d; Blue %d\n",info.Year, info.Term,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)

@@ -154,9 +154,19 @@ func GetSelected() []*MySelInfo{
 	}
 }
 
-func EnumAll(startyear int, proc func (info* Info)()){
+func EnumAll(startyear int, limit int64,proc func (info* Info)()){
 	db:=GetDB()
-	query:=fmt.Sprintf("select * from records where year>=%d",startyear)
+	query:=fmt.Sprintf("select count(*) as value from records")
+	var rows int64
+    	if err := db.QueryRow(query).Scan(&rows); err != nil {
+        	fmt.Println("Query rows error")
+        	return 
+    	}
+	if rows<limit || limit <0{
+		limit=rows
+	}
+	
+	query=fmt.Sprintf("select * from records where year>=%d limit %d,%d",startyear,rows-limit,limit)
 	if res,err:=db.Query(query);err!=nil{
 		fmt.Println("slect in db error")
 		return

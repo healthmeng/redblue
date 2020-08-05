@@ -98,7 +98,8 @@ func doUpdateOpt(){
 }
 
 
-func checkMatch(info *dbop.Info){
+func checkMatch(info *dbop.Info) int{
+	money:=0
 	dst:=make(map[int] int)
 	for _,v:=range info.RedBalls{
 		dst[v]=1
@@ -112,7 +113,7 @@ func checkMatch(info *dbop.Info){
 			}
 		}	
 	bluehit:=false
-	money:=0
+	money=0
 	if mysel.BlueBall==info.BlueBall{
 		bluehit=true		
 	}
@@ -143,6 +144,7 @@ func checkMatch(info *dbop.Info){
 		fmt.Println("Hit!!! ", mysel.RedBalls,"[",mysel.BlueBall,"]  Get bonus:￥",money)
 	}
 	}
+	return money
 }
 
 /* 
@@ -174,8 +176,18 @@ func SimplePrint(info *dbop.Info){
 	fmt.Printf("%d-%d(%s): Red %d, %d, %d, %d, %d, %d; Blue %d\n",info.Year, info.Term,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
 }
 
-func doShowAll(){
-	dbop.EnumAll(2003,SimplePrint)
+func CheckBonus(info *dbop.Info){
+	fmt.Printf("%d-%d(%s): Red %d, %d, %d, %d, %d, %d; Blue %d.   ",info.Year, info.Term,info.Date,info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall)
+	if checkMatch(info)==0{
+		fmt.Println("")
+	}
+}
+func doShowAll(limit int64){
+	if limit<0{
+		dbop.EnumAll(2003,limit,SimplePrint)
+	}else{
+		dbop.EnumAll(2003,limit,CheckBonus)
+	}
 }
 
 type backet struct{
@@ -208,7 +220,7 @@ func (s *SortType)Swap(i,j int){
 
 func GetLeast(from int){
 	bks:=backet{[33]int{0},[16]int{0}}
-	dbop.EnumAll(from,func (info* dbop.Info){
+	dbop.EnumAll(from,-1,func (info* dbop.Info){
 		for i:=0;i<6;i++{
 			bks.redbk[info.RedBalls[i]-1]++
 		}
@@ -326,14 +338,20 @@ func main(){
 		case "-a":
 			fallthrough
 		case "all":
-			doShowAll()
+			var recent int64=-1
+			if argc>=3{
+				if rec,err:=strconv.ParseInt(os.Args[2],10,64);err==nil{
+					recent=rec
+				}
+			}
+			doShowAll(recent)
 		case "-g":
 			fallthrough
 		case "get":
 			getSuggest()
 		case "-s":
 			fallthrough
-		case "show":
+		case "set":
 			setSelect()
 		}
 	}

@@ -294,6 +294,24 @@ func delSel(){
 }
 
 func editSel(){
+	var sel int
+	fmt.Print("Input ID to be edited:")
+	fmt.Scanln(&sel)
+	info:=new (dbop.MySelInfo)
+	fmt.Print("Six red balls:")
+	for i:=0;i<6;i++{
+		fmt.Scanln(&info.RedBalls[i])
+	}
+	fmt.Print("Blue ball:")
+	fmt.Scanln(&info.BlueBall)
+	curtm:=time.Now()
+	info.Date=fmt.Sprintf("%04d-%02d-%02d",curtm.Year(),curtm.Month(),curtm.Day())
+	info.Id=sel
+	if ok,err:=info.UpdateInfo();ok==true{
+		fmt.Println("Edit ok")
+	}else if err!=nil{
+		fmt.Println("Edit error:",err.Error())
+	}
 }
 
 func setSelect(){

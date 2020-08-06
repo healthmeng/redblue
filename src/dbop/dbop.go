@@ -120,6 +120,19 @@ func findLeastID() (int,error){
 	return 0,errors.New("Impossible error")
 }
 
+func (info* MySelInfo)UpdateInfo()(bool,error){
+	db:=GetDB()
+	ret:=false
+	query:=fmt.Sprintf("update mysel set rb1=%d,rb2=%d,rb3=%d,rb4=%d,rb5=%d,rb6=%d,bb=%d,date='%s' where id=%d",info.RedBalls[0],info.RedBalls[1],info.RedBalls[2],info.RedBalls[3],info.RedBalls[4],info.RedBalls[5],info.BlueBall,info.Date,info.Id) 
+	
+	if res,err:=db.Exec(query);err!=nil{
+		return false,err
+	}else if rows,_:=res.RowsAffected();rows>0{
+		ret=true
+	}
+	return ret,nil
+}
+
 func InsertSel(info* MySelInfo){
 	db:=GetDB()
 	var err error

@@ -48,26 +48,27 @@ func GetDB() *sql.DB{
 	return curdb
 }
 
-func GetLastRecord(thisyear int)(int,int,error){
+func GetLastRecord(thisyear int)(int,int,string,error){
 	db:=GetDB()
 	year:=2003
 	term:=0
+	date:=""
 	for y:=thisyear;y>=2003;y--{
-		query:=fmt.Sprintf("select year,term from records where year='%d' order by term desc",y)
+		query:=fmt.Sprintf("select year,term,runtime from records where year='%d' order by term desc limit 1",y)
 		res,err:=db.Query(query)
 		if err!=nil{
-			return year,term,err
+			return year,term,date,err
 		}
 		if res.Next(){
-			if err:=res.Scan(&year,&term);err!=nil{
+			if err:=res.Scan(&year,&term,&date);err!=nil{
 				fmt.Println("Get last record scan error ", err)
-				return year,term,err
+				return year,term,date,err
 			}else{
 				break
 			}
 		}
 	}
-	return year,term,nil
+	return year,term,date,nil
 }
 
 func Lookup(year, term int) (*Info,error){

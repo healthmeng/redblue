@@ -71,12 +71,12 @@ func CheckoutUrl(url string,year, term int) *dbop.Info{
 
 func doUpdateOpt(){
 	thisyear:=time.Now().Year()
-	lyear,lterm,err:=dbop.GetLastRecord(thisyear)
+	lyear,lterm,date,err:=dbop.GetLastRecord(thisyear)
 	if err!=nil{
 		fmt.Println("Get last record error",err)
 		return
 	}
-	fmt.Printf("Get last record: %d-%d\n", lyear,lterm)
+	fmt.Printf("Get last record: %d-%d(%s)\n", lyear,lterm,date)
 	for y:=lyear;y<=thisyear;y++{
 		for t:=lterm+1;t<160;t++{
 			str:=fmt.Sprintf("https://kjh.55128.cn/ssq-kjjg-%d%03d.htm",y,t)

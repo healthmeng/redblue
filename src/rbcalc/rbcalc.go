@@ -80,8 +80,9 @@ func doUpdateOpt() {
 		fmt.Println("Get last record error", err)
 		return
 	}
-	fmt.Print("Get last record--")
+	fmt.Print("Last record--")
 	SimplePrint(linfo)
+	count:=0
 	for y := lyear; y <= thisyear; y++ {
 		for t := lterm + 1; t < 160; t++ {
 			str := fmt.Sprintf("https://kjh.55128.cn/ssq-kjjg-%d%03d.htm", y, t)
@@ -89,17 +90,21 @@ func doUpdateOpt() {
 			if info != nil {
 				if i, _ := dbop.Lookup(info.Year, info.Term); i == nil {
 					info.AddInfo()
-
-					fmt.Printf("%d-%d(%s) updated: Red: %d, %d, %d, %d, %d, %d; Blue :%d\n", y, t, info.Date, info.RedBalls[0], info.RedBalls[1], info.RedBalls[2], info.RedBalls[3], info.RedBalls[4], info.RedBalls[5], info.BlueBall)
+					count++
+					fmt.Printf("%d-%d(%s): Red: %d, %d, %d, %d, %d, %d; Blue :%d\n", y, t, info.Date, info.RedBalls[0], info.RedBalls[1], info.RedBalls[2], info.RedBalls[3], info.RedBalls[4], info.RedBalls[5], info.BlueBall)
 
 					checkMatch(info)
 				}
 			} else {
 				break
 			}
+
 		}
 		lterm = 0
 	}
+	if count>0{
+		fmt.Println(count,"terms updated.")
+			}
 }
 
 func checkMatch(info *dbop.Info) int {
@@ -177,7 +182,7 @@ StopFind:
 }*/
 
 func SimplePrint(info *dbop.Info) {
-	fmt.Printf("%d-%d(%s): Red %d, %d, %d, %d, %d, %d; Blue %d\n", info.Year, info.Term, info.Date, info.RedBalls[0], info.RedBalls[1], info.RedBalls[2], info.RedBalls[3], info.RedBalls[4], info.RedBalls[5], info.BlueBall)
+	fmt.Printf("%s: Red %d, %d, %d, %d, %d, %d; Blue %d\n", info.Date, info.RedBalls[0], info.RedBalls[1], info.RedBalls[2], info.RedBalls[3], info.RedBalls[4], info.RedBalls[5], info.BlueBall)
 }
 
 func CheckBonus(info *dbop.Info) {
@@ -269,7 +274,7 @@ func getSuggest() {
 func prtCurSel() {
 	infos := dbop.GetSelected()
 	for _, i := range infos {
-		fmt.Println(i.Id, ": Red:", i.RedBalls, "Blue:[", i.BlueBall, "]; Selected in:", i.Date)
+		fmt.Println(i.Id, "Red:", i.RedBalls, "Blue:[", i.BlueBall, "]; register:", i.Date)
 	}
 }
 

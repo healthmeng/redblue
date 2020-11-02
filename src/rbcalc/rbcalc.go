@@ -70,13 +70,18 @@ func CheckoutUrl(url string,year, term int) *dbop.Info{
 }
 
 func doUpdateOpt(){
+	fmt.Println("Current selected:")
+	prtCurSel()
 	thisyear:=time.Now().Year()
-	lyear,lterm,date,err:=dbop.GetLastRecord(thisyear)
+	linfo,err:=dbop.GetLastRecord(thisyear)
+	lyear,lterm:=linfo.Year,linfo.Term
+	//lyear,lterm,date,err:=dbop.GetLastRecord(thisyear)
 	if err!=nil{
 		fmt.Println("Get last record error",err)
 		return
 	}
-	fmt.Printf("Get last record: %d-%d(%s)\n", lyear,lterm,date)
+	fmt.Print("Get last record -- ")
+	SimplePrint(linfo)
 	for y:=lyear;y<=thisyear;y++{
 		for t:=lterm+1;t<160;t++{
 			str:=fmt.Sprintf("https://kjh.55128.cn/ssq-kjjg-%d%03d.htm",y,t)
@@ -271,10 +276,13 @@ func prtCurSel(){
 
 func addSel(){
 	info:=new (dbop.MySelInfo)
+	info.RedBalls=make([]int,6)
 	fmt.Println("Six red balls:")
 	for i:=0;i<6;i++{
+		fmt.Printf("%d:",i+1)
 		fmt.Scanf("%d",&info.RedBalls[i])
 	}
+	sort.Ints(info.RedBalls)
 	fmt.Println("Blue ball:")
 	fmt.Scanf("%d",&info.BlueBall)
 	curtm:=time.Now()
@@ -298,10 +306,13 @@ func editSel(){
 	fmt.Print("Input ID to be edited:")
 	fmt.Scanln(&sel)
 	info:=new (dbop.MySelInfo)
-	fmt.Print("Six red balls:")
+	info.RedBalls=make([]int,6)
+	fmt.Println("Six red balls:")
 	for i:=0;i<6;i++{
+		fmt.Printf("%d:",i+1)
 		fmt.Scanln(&info.RedBalls[i])
 	}
+	sort.Ints(info.RedBalls)
 	fmt.Print("Blue ball:")
 	fmt.Scanln(&info.BlueBall)
 	curtm:=time.Now()
@@ -320,6 +331,7 @@ oversel:
 		prtCurSel()
 		var sel string
 		fmt.Println("(A) Add... (D) Del. (E) Edit... (Q) Quit")
+		fmt.Print("Select:")
 		fmt.Scanln(&sel)
 		switch sel{
 			case "A":
@@ -339,7 +351,6 @@ oversel:
 			case "Q":
 				break oversel
 		}
-		
 	}
 }
 

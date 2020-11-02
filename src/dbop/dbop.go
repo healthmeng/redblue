@@ -20,7 +20,7 @@ type Info struct{
 }
 
 type MySelInfo struct{
-	RedBalls[6] int
+	RedBalls[] int
 	BlueBall int
 	Date string
 	Id int
@@ -48,27 +48,38 @@ func GetDB() *sql.DB{
 	return curdb
 }
 
-func GetLastRecord(thisyear int)(int,int,string,error){
+//func GetLastRecord(thisyear int)(int,int,string,error){
+func GetLastRecord(thisyear int)(*Info,error){
 	db:=GetDB()
-	year:=2003
+	info:=new(Info)
+	var id int
+/*	year:=2003
 	term:=0
 	date:=""
+	*/
 	for y:=thisyear;y>=2003;y--{
-		query:=fmt.Sprintf("select year,term,runtime from records where year='%d' order by term desc limit 1",y)
+		query:=fmt.Sprintf("select * from records where year='%d' order by term desc limit 1",y)
 		res,err:=db.Query(query)
 		if err!=nil{
-			return year,term,date,err
+			return nil,err
 		}
 		if res.Next(){
+/*
 			if err:=res.Scan(&year,&term,&date);err!=nil{
 				fmt.Println("Get last record scan error ", err)
 				return year,term,date,err
 			}else{
 				break
 			}
+			*/
+			if err:=res.Scan(&info.Year,&info.Term,&info.RedBalls[0],&info.RedBalls[1],&info.RedBalls[2],&info.RedBalls[3],&info.RedBalls[4],&info.RedBalls[5],&info.BlueBall,&info.Date,&id);err!=nil{
+				return nil,err
+			}else{
+				break
+			}
 		}
 	}
-	return year,term,date,nil
+	return info,nil
 }
 
 func Lookup(year, term int) (*Info,error){
@@ -157,6 +168,7 @@ func GetSelected() []*MySelInfo{
 	list:=make([]*MySelInfo,0,100) // should <10
 	for res.Next(){
 		info:=new(MySelInfo)
+		info.RedBalls=make([]int,6)
 		if err:=res.Scan(&info.Id,&info.RedBalls[0],&info.RedBalls[1],&info.RedBalls[2],&info.RedBalls[3],&info.RedBalls[4],&info.RedBalls[5],&info.BlueBall,&info.Date);err!=nil{
 			fmt.Println("Scan query error in GetSeled:",err.Error())
 			return nil
